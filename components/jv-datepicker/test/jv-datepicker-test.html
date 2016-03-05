@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../test-fixture/test-fixture-mocha.js"></script>
+    <script src="../../iron-test-helpers/mock-interactions.js"></script>
+    <link rel="import" href="../../test-fixture/test-fixture.html">
+
+    <link rel="import" href="../jv-datepicker.html">
+  </head>
+  <body>
+
+    <!-- Setting up test-fixture for jv-datepicker -->
+    <test-fixture id="JvDatepicker">
+      <template>
+        <jv-datepicker></jv-datepicker>
+      </template>
+    </test-fixture>
+
+    <script>
+      'use strict';
+      describe('<jv-datepicker>', function () {
+        var datepicker;
+        beforeEach(function () {
+          datepicker = fixture('JvDatepicker');
+        });
+
+        context('datepicker has role="datepicker"', function () {
+          it('should show "datepicker" for attribute role', function () {
+            expect(datepicker.getAttribute('role')).to.be.equal('datepicker');
+          });
+        });
+
+        context('test inputs for correct selected view', function() {
+          it('should select date view on start', function () {
+            var _ironSelector = datepicker.querySelector('iron-selector');
+            expect(_ironSelector.selected).to.be.equal('date');
+          });
+
+          it('should select the correct view (year)', function () {
+            var _yearView = datepicker.querySelector('iron-selector #selectionViewYearSelected');
+            _yearView.dispatchEvent(new CustomEvent('tap', {bubbles: true}));
+            expect(_yearView.classList.contains('iron-selected'));
+          });
+
+          it('should select the correct view (date)', function () {
+            var _ironSelector = datepicker.querySelector('iron-selector'),
+                _dateView = _ironSelector.querySelector('#selectionViewDateSelected'),
+                _yearView = _ironSelector.querySelector('#selectionViewYearSelected');
+            _yearView.dispatchEvent(new CustomEvent('tap', {bubbles: true}));
+            _dateView.dispatchEvent(new CustomEvent('tap', {bubbles: true}));
+            expect(_dateView.classList.contains('iron-selected')).to.be.true;
+          });
+        });
+      });
+    </script>
+
+  </body>
+</html>
