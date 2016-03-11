@@ -895,7 +895,6 @@ Custom property | Description | Default
       // This is to detect changes to date from external sources and adjust accordingly.
       // In particular, this can be used to sync the date picker and another input element.
       onDateChanged: function(val, old) {
-        console.log(this, val, old, this._selectedDate, this._selectedMonth, this._selectedYear);
         var mA = moment.utc(val, 'YYYY-MM-DD');
         var mB = moment.utc([this._selectedYear, this._selectedMonth, this._selectedDate]);
         if (+mA !== +mB) {
