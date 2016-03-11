@@ -29,10 +29,6 @@ Example:
 `jv-datepicker` provides a regular datepicker element.
 While `jv-datepicker-dialog` has a `jv-datepicker` being wrapped inside a dialog.
 
-### ( Coming soon!) Generating your own boilerplate code of the element `jv-datepicker` or `jv-datepicker-dialog`
-
-At the end of the demo, there is a section where user can play around with to generate your own boilerplate code with the attributes provided. Let's go and check out the demo!
-
 ### Styling
 
 Style the datepicker with CSS as you would a normal DOM element.
@@ -78,7 +74,7 @@ Custom property | Description | Default
 `--jv-datepicker-disabled-color` | Text color of disabled days | #9e9e9e
 `--jv-datepicker-icon-buttons-color` | Text color of `paper-icon-button` | #737373
 `--jv-datepicker-icon-button-ink-color` | Ink color of `paper-icon-button` | #737373
-`--jv-datepicker-button-color | Color of `paper-button` | #009688
+`--jv-datepicker-button-color` | Color of `paper-button` | #009688
 `--jv-datepicker` | Mixin applied to the datepicker | {}
 
 @author motss
@@ -177,6 +173,7 @@ Custom property | Description | Default
         width: 41px;
         @apply(--layout-horizontal);
         @apply(--layout-center-center);
+        @apply(--jv-datepicker-each-days-of-week);
       }
       div.days-of-month {
         /*padding-bottom: 8px;*/
@@ -193,6 +190,7 @@ Custom property | Description | Default
         position: relative;
         @apply(--layout-horizontal);
         @apply(--layout-center-center);
+        @apply(--jv-datepicker-each-days-of-month);
       }
       div > div.days-of-month > div.each-days-of-month.chosen-days-of-month {
         border-radius: 50%;
@@ -375,7 +373,7 @@ Custom property | Description | Default
         disableDays: {
           type: Array,
           value: function() {
-            return [6, 0];
+            return [];
           }
         },
         /**
@@ -403,24 +401,15 @@ Custom property | Description | Default
         },
         /**
          * Selected date in the default format of `yyyy-mm-dd`. Eg. `2017-05-17`.
+         * You can also use it to set the selected date.
          */
         date: {
           type: String,
           value: function() {
-            var _now = new Date();
-            var _fullyear = _now.getFullYear();
-            var _month = this._padStart(_now.getMonth() + 1, 2, '0');
-            var _date = this._padStart(_now.getDate() + 1, 2, '0');
-            return [_fullyear, _month, _date].join('-');
+            return moment.utc().format('YYYY-MM-DD');
           },
-          notify: true
-        },
-        /**
-         * Selected date will be formatted into long date. Eg. `Fri, May 12 2017`.
-         */
-        showLongDate: {
-          type: Boolean,
-          value: false
+          notify: true,
+          observer: 'onDateChanged'
         },
 
         _daysOfWeek: {
@@ -486,11 +475,7 @@ Custom property | Description | Default
         _selectedDaysOfWeek: {
           type: String,
           value: function() {
-            var _daysOfWeek = new Date().getDay();
-            if (_daysOfWeek < 0) {
-              _daysOfWeek = 6;
-            }
-            return _dayNames[_daysOfWeek].slice(0, 3);
+            return moment.utc().format('ddd');
           }
         },
         _chosenListOfYears: {
@@ -510,20 +495,12 @@ Custom property | Description | Default
         _isSelectedDateConfirmed: {
           type: Boolean,
           value: false
-        },
-        _format: {
-          type: Object,
-          value: function() {
-            return {y: 'yyyy', m: 'mm', d: 'dd', s1: '-', s2: '-'};
-          }
-        },
-
+        }
       },
 
       observers: [
         '_computeDaysOfMonth(_activeYear, _activeMonth, firstDayOfWeek)',
         '_updateList(_activeView)',
-        '_computeSeparateFormat(format)',
         '_computeShowLongDate(showLongDate)'
       ],
 
@@ -595,8 +572,6 @@ Custom property | Description | Default
           this.updateStyles({
             '--jv-datepicker-height': (300 + 84 + 57) + 'px'
           });
-        }else {
-
         }
       },
 
@@ -896,47 +871,8 @@ Custom property | Description | Default
 				_temp = null;
       },
 
-      _bindSelectedFulldate: function(_selectedYear, _selectedMonth, _selectedDate, _format) {
-				// show long date (eg. Fri, May 12 2017 instead.
-        if (this.showLongDate) {
-          var _longDate = new Date(_selectedYear, _selectedMonth,
-						_selectedDate).toString().slice(0, 15);
-					return _longDate.slice(0, 3) + ',' + _longDate.slice(3);
-        }
-
-				var _formattedYear  = _selectedYear;
-				var _formattedMonth  = _monthNames[_selectedMonth];
-				var _formattedDate  = _selectedDate;
-				var _finalFormatted = '';
-        // compute new formatted year.
-        if (_format.y === 'yy') {
-          _formattedYear = _selectedYear%100;
-        }
-        // compute new formatted month.
-        if (_format.m === 'mmm') {
-          _formattedMonth = _formattedMonth.slice(0, 3);
-        }else if (_format.m === 'mm') {
-          _formattedMonth = this._padStart(_selectedMonth + 1, 2, '0');
-        }else if (_format.m === 'm') {
-          _formattedMonth = _selectedMonth + 1;
-        }
-        // compute new formatted date.
-        if (_format.d === 'do') {
-          var _cardinalNumber = _formattedDate%10;
-          var _suffixOrdinal = _cardinalNumber > 3 ? 'th' :
-            ['th', 'st', 'nd', 'rd'][_cardinalNumber];
-          if (_formattedDate === 11 || _formattedDate == 12 || _formattedDate === 13) {
-            _suffixOrdinal = 'th';
-          }
-          _formattedDate = _formattedDate + _suffixOrdinal;
-        }else if (_format.d === 'dd') {
-          _formattedDate = this._padStart(_formattedDate, 2, '0');
-        }
-        // set formatted value with user defined symbols.
-        _finalFormatted = [_formattedYear, _format.s1, _formattedMonth,
-          _format.s2, _formattedDate].join('');
-
-				return _finalFormatted;
+      _bindSelectedFulldate: function(_selectedYear, _selectedMonth, _selectedDate) {
+        return moment.utc([_selectedYear, _selectedMonth, _selectedDate]).format('YYYY-MM-DD');
       },
       // functions for content tag.
       _confirmSelectedDate: function(ev) {
@@ -947,17 +883,28 @@ Custom property | Description | Default
       updateBindDate: function(ev) {
         if (this._isSelectedDateConfirmed) {
           this.set('date', this._bindSelectedFulldate(this._selectedYear, this._selectedMonth,
-            this._selectedDate, this._format));
+            this._selectedDate));
           this.set('_isSelectedDateConfirmed', false);
         }
       },
       // Update date to show long date or short date.
       _computeShowLongDate: function(_showLongDate) {
-        if (_showLongDate) {
-          var _longDate = this._isUndefined(this._selectedDate) ? new Date().toString().slice(0, 15) : new Date(this._selectedYear, this._selectedMonth, this._selectedDate).toString().slice(0, 15);
-          this.set('date', _longDate.slice(0,3) + ',' + _longDate.slice(3));
-        }else {
-					this.set('date', this._isUndefined(this._selectedDate) ? this.date : this._bindSelectedFulldate(this._selectedYear, this._selectedMonth,	this._selectedDate, this._format));
+        this.set('date', this._isUndefined(this._selectedDate) ? this.date : this._bindSelectedFulldate(this._selectedYear, this._selectedMonth,	this._selectedDate, this._format));
+      },
+
+      // This is to detect changes to date from external sources and adjust accordingly.
+      // In particular, this can be used to sync the date picker and another input element.
+      onDateChanged: function(val, old) {
+        console.log(this, val, old, this._selectedDate, this._selectedMonth, this._selectedYear);
+        var mA = moment.utc(val, 'YYYY-MM-DD');
+        var mB = moment.utc([this._selectedYear, this._selectedMonth, this._selectedDate]);
+        if (+mA !== +mB) {
+          this.set('_selectedYear', mA.year());
+          this.set('_selectedMonth', mA.month());
+          this.set('_selectedDate', mA.date());
+          this.set('_selectedDaysOfWeek', mA.format('ddd'));
+          this.set('_activeYear', mA.year());
+          this.set('_activeMonth', mA.month());
         }
       },
 
