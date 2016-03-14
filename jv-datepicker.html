@@ -904,7 +904,13 @@ Custom property | Description | Default
           this.set('_selectedDaysOfWeek', mA.format('ddd'));
           this.set('_activeYear', mA.year());
           this.set('_activeMonth', mA.month());
-          this.set('_chosenDaysOfMonth', mA.date());
+          var index = this._daysOfMonth.indexOf(mA.date());
+          var _node = Polymer.dom(this.$.daysOfMonth).querySelectorAll('div');
+          this.toggleClass('chosen-days-of-month', false,
+            _node[this._chosenDaysOfMonth]);
+          this.set('_chosenDaysOfMonth', index);
+          this.toggleClass('chosen-days-of-month', true,
+            _node[index]);
         }
       },
 
